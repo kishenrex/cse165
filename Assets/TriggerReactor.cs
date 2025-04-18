@@ -23,14 +23,15 @@ public class TriggerReactor : MonoBehaviour
     public void onTriggerButtonEvent(bool pressed)
     {
         IsPressed = pressed;
-        if (rotator != null)
-            StopCoroutine(rotator);
-        if (pressed)
-            rotator = StartCoroutine(AnimateRotation(this.transform.rotation, onRotation));
-        else
-            rotator = StartCoroutine(AnimateRotation(this.transform.rotation, offRotation));
+        //if (rotator != null)
+        //    StopCoroutine(rotator);
+        //if (pressed)
+        //    rotator = StartCoroutine(AnimateRotation(this.transform.rotation, onRotation));
+        //else
+        //    rotator = StartCoroutine(AnimateRotation(this.transform.rotation, offRotation));
 
         Instantiate(object1);
+        Instantiate(object2);
     }
 
     private IEnumerator AnimateRotation(Quaternion fromRotation, Quaternion toRotation)

@@ -4935,7 +4935,7 @@ Transform:
   m_GameObject: {fileID: 2625404459855865073}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.014, y: 1.654, z: -9.502}
+  m_LocalPosition: {x: -7.111, y: 2.052, z: -9.391}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5412,7 +5412,7 @@ GameObject:
   - component: {fileID: 74413463388726720}
   - component: {fileID: 5923596689108719932}
   - component: {fileID: 5923596689108719931}
-  - component: {fileID: 5923596689108719930}
+  - component: {fileID: 5923596689108719933}
   m_Layer: 0
   m_Name: Medical_instrument_5
   m_TagString: Untagged
@@ -6772,7 +6772,7 @@ Transform:
   m_GameObject: {fileID: 1816226814106308892}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.9650984, y: 0.9917429, z: -10.299785}
+  m_LocalPosition: {x: -6.838, y: 2.072, z: -9.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8823,24 +8823,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1816226814106308892}
   m_Mesh: {fileID: 1788676590275918808, guid: 77f3ca7d70f6e404bb998a7ed7390115, type: 3}
---- !u!114 &5923596689108719930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1816226814106308892}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a22d383ead41d7b41ad3c0e74de14155, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  watcher: {fileID: 755979364}
-  IsPressed: 0
-  rotationAngle: {x: 45, y: 45, z: 45}
-  rotationDuration: 0.25
-  object1: {fileID: 2625404459855865073}
-  object2: {fileID: -927199367670048503, guid: 77f3ca7d70f6e404bb998a7ed7390115, type: 3}
 --- !u!114 &5923596689108719931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9020,6 +9002,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!65 &5923596689108719933
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816226814106308892}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.01439218, y: 0.00890664, z: 0.27365667}
+  m_Center: {x: 0.0000033699907, y: -0.0000013702083, z: 0.0000027045608}
 --- !u!4 &5954029473497418726
 Transform:
   m_ObjectHideFlags: 0
@@ -11420,8 +11423,8 @@ MonoBehaviour:
   IsPressed: 0
   rotationAngle: {x: 45, y: 45, z: 45}
   rotationDuration: 0.25
-  object1: {fileID: 0}
-  object2: {fileID: 0}
+  object1: {fileID: 2625404459855865073}
+  object2: {fileID: 1816226814106308892}
 --- !u!1 &8068471663941553799
 GameObject:
   m_ObjectHideFlags: 0
