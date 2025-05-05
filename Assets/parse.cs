@@ -1,27 +1,50 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using TMPro;
 
+
+[RequireComponent(typeof(LineRenderer))] // Ensure LineRenderer is present
 public class parse : MonoBehaviour
 {
 	public TextAsset file;
 	public GameObject wayPoint;
 
-    List<Vector3> positions;
+    Vector3[] positions;
 
+    [Header("Arrow Customization")]
+    public Material lineMaterial; // Assign a particle or unlit material here!
+    public Color arrowColor = Color.yellow;
+    public float lineWidth = 0.05f;
+    public float arrowHeadAngle = 20.0f;
+    public float arrowHeadLength = 0.25f;
+
+    [Header("Text Display")]
+    public Color textColor = Color.white;
+    public float textSize = 1.0f;
+    public Vector3 textOffset = new Vector3(0, 0.2f, 0); // Offset text slightly above the midpoint
+    public bool makeTextFaceCamera = true; // Should the text always face the camera?
+
+    // Components
+    private LineRenderer lineRenderer;
+    private TextMeshPro textMeshPro;
+    private GameObject textObject; // Reference to the child object holding the TMP component
+    private Camera mainCamera;
     void ParseFile()
 	{
 		float ScaleFactor = 1.0f / 39.37f;
-		positions = new List<Vector3>();
+		
 		string content = file.ToString();
 		string[] lines = content.Split('\n');
-		for (int i = 0; i < lines.Length; i++)
+        positions = new Vector3[lines.Length];
+        for (int i = 0; i < lines.Length; i++)
 		{
 			string[] coords = lines[i].Split(' ');
 			Vector3 pos = new Vector3(float.Parse(coords[0]), float.Parse(coords[1]), float.Parse(coords[2]));
-			positions.Add(pos * ScaleFactor);
+			positions[i] = pos * ScaleFactor;
 		}
 		//return positions;
 	}
@@ -37,28 +60,153 @@ public class parse : MonoBehaviour
 			Instantiate(wayPoint, pos, Quaternion.identity);
             
         }
-        Debug.DrawLine(wayPoint.transform.position, positions[0], Color.green, 5f);
+        //Debug.DrawLine(wayPoint.transform.position, positions[0], Color.green, 5f);
+        //LineRenderer lineRenderer = gameObject.AddComponent<LineRenderer>();
+        //lineRenderer.startWidth = 0.1f;
+        //lineRenderer.endWidth = 0.1f;
+        //lineRenderer.SetPosition(0, positions[0]); // Start point
+        //lineRenderer.SetPosition(1, positions[1]); // End point
+        // --- Setup Line Renderer ---
+        lineRenderer = GetComponent<LineRenderer>();
+
+        // Assign material if provided, otherwise use a default particle material
+        if (lineMaterial != null)
+        {
+            lineRenderer.material = lineMaterial;
+        }
+        else
+        {
+            // Fallback to a common particle shader material if none assigned
+            lineRenderer.material = new Material(Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply"));
+        }
+
+        // Set parameters
+        lineRenderer.startWidth = lineWidth;
+        lineRenderer.endWidth = lineWidth;
+        lineRenderer.positionCount = 5; // Start, End, HeadTip1, End, HeadTip2
+        lineRenderer.useWorldSpace = true; // Arrow moves with objects
+
+        // --- Setup TextMeshPro ---
+        // Create a child GameObject to hold the TextMeshPro component
+        textObject = new GameObject("Arrow Text");
+        textObject.transform.SetParent(this.transform, false); // Attach to this object, keep local orientation
+
+        textMeshPro = textObject.AddComponent<TextMeshPro>();
+        textMeshPro.alignment = TextAlignmentOptions.Center;
+        textMeshPro.fontSize = textSize;
+        textMeshPro.color = textColor;
+        // Optional: Disable Mesh Renderer casting shadows/receiving shadows if desired
+        // MeshRenderer tmProRenderer = textObject.GetComponent<MeshRenderer>();
+        // if (tmProRenderer != null) {
+        //     tmProRenderer.receiveShadows = false;
+        //     tmProRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        // }
+
+        // Get main camera reference
+        mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogError("RuntimeArrowDisplay: Main Camera not found! Text cannot face camera.", this);
+        }
     }
 
-	void Update()
-	{
-        Debug.DrawLine(wayPoint.transform.position, positions[0], Color.green, 5f);
+    void Update()
+    {
+        
+        // Get positions
+        Vector3 startPos = positions[0];
+        Vector3 endPos = positions[1];
+
+        // Calculate direction and distance
+        Vector3 direction = endPos - startPos;
+        float distance = direction.magnitude;
+
+        // --- Update Line Renderer ---
+        if (distance > 0.01f) // Only draw if distance is significant
+        {
+            lineRenderer.startColor = arrowColor;
+            lineRenderer.endColor = arrowColor;
+            lineRenderer.startWidth = lineWidth;
+            lineRenderer.endWidth = lineWidth;
+
+            // Calculate arrowhead points
+            Vector3 normalizedDirection = direction.normalized;
+            Vector3 right = Quaternion.LookRotation(direction) * Quaternion.Euler(0, arrowHeadAngle, 0) * Vector3.back;
+            Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0, -arrowHeadAngle, 0) * Vector3.back;
+            Vector3 headTip1 = endPos + right * arrowHeadLength;
+            Vector3 headTip2 = endPos + left * arrowHeadLength;
+
+            // Set Line Renderer positions
+            lineRenderer.SetPosition(0, startPos);
+            lineRenderer.SetPosition(1, endPos);
+            lineRenderer.SetPosition(2, headTip1);
+            lineRenderer.SetPosition(3, endPos); // Go back to the endpoint for the second head line
+            lineRenderer.SetPosition(4, headTip2);
+        }
+        else
+        {
+            // If distance is too small, just draw a tiny segment or nothing
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPosition(0, startPos);
+            lineRenderer.SetPosition(1, startPos); // Effectively hides it
+            // Or disable it: lineRenderer.enabled = false; (handled above)
+        }
+
+
+        // --- Update Text Mesh Pro ---
+        if (textMeshPro != null)
+        {
+            // Calculate midpoint and apply offset
+            Vector3 midPoint = startPos + direction * 0.5f;
+            textMeshPro.transform.position = midPoint + textOffset;
+
+            // Set text content
+            string distanceText = $"Dist: {distance:F2}";
+            string directionText = $"Dir: {direction.ToString("F2")}";
+            textMeshPro.text = $"{distanceText}\n{directionText}";
+
+            // Update text properties
+            textMeshPro.fontSize = textSize;
+            textMeshPro.color = textColor;
+
+            // Make text face the camera (optional)
+            if (makeTextFaceCamera && mainCamera != null)
+            {
+                // Rotate the text object to face the camera
+                textMeshPro.transform.rotation = Quaternion.LookRotation(textMeshPro.transform.position - mainCamera.transform.position);
+
+                // Alternative (Billboard effect - often looks better for text):
+                // textMeshPro.transform.rotation = mainCamera.transform.rotation;
+            }
+        }
     }
     void OnTriggerEnter(Collider other)
     {
-        //Destroy(gameObject);
-		Debug.Log(other.name);
-        Destroy(other.gameObject);
-        positions.RemoveAt(0);
+        if (other.transform.position == positions[0])
+        {
+            Debug.Log("Trigger with " + other.name);
+            Debug.Log(other.name);
 
+
+
+            Destroy(other.gameObject);
+            //positions.RemoveAt(0);
+            Vector3[] newList = new Vector3[positions.Length - 1];
+            for(int i = 0; i < positions.Length - 1; i++)
+            {
+                newList[i] = positions[i + 1];
+            }
+            positions = newList;
+
+            // Draw a line from position 0 to position 1
+            LineRenderer lineRenderer = other.gameObject.AddComponent<LineRenderer>();
+            lineRenderer.startWidth = 0.3f;
+            lineRenderer.endWidth = 0.1f;
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPositions(positions); // Start point
+
+            Debug.Log("Position count: " + positions.Length);
+        }
     }
-    //  void OnCollisionEnter(Collision collision)
-    //  {
-    //      foreach (ContactPoint contact in collision.contacts)
-    //      {
-    //          Debug.DrawRay(contact.point, contact.normal, Color.white);
-    //      }
-    //Debug.Log("Collision with " + collision.gameObject.name);
-    //  }
 
 }
