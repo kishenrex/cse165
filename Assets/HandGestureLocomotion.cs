@@ -54,6 +54,8 @@ public class HandGestureLocomotion : MonoBehaviour
         {
             MoveInDirectionOfLeftHand(leftHand);
         }
+
+        // Optional: Camera switch based on left hand
     }
 
     void MoveInDirectionOfLeftHand(XRHand leftHand)
@@ -61,8 +63,10 @@ public class HandGestureLocomotion : MonoBehaviour
         if (leftHand.GetJoint(XRHandJointID.Palm).TryGetPose(out Pose leftPalmPose))
         {
             Vector3 direction = leftPalmPose.forward; // You can also use another joint for more precise pointing
-            Vector3 movement = direction.normalized * Time.deltaTime * 10.5f; // Movement speed
+            Vector3 movement = direction.normalized * Time.deltaTime * 20f; // Movement speed
             transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
         }
     }
+
+
 }

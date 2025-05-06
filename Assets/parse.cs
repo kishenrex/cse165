@@ -33,6 +33,8 @@ public class parse : MonoBehaviour
     private TextMeshPro textMeshPro;
     private GameObject textObject; // Reference to the child object holding the TMP component
     private Camera mainCamera;
+
+    public GameObject XRrig;
     void ParseFile()
 	{
 		float ScaleFactor = 1.0f / 39.37f;
@@ -108,14 +110,19 @@ public class parse : MonoBehaviour
         {
             Debug.LogError("RuntimeArrowDisplay: Main Camera not found! Text cannot face camera.", this);
         }
+
+        XRrig.transform.position = positions[0];
+        Vector3 up = new Vector3(0, 1.0f, 0);
+        XRrig.transform.rotation = Quaternion.LookRotation(positions[1] - positions[0], up);
     }
 
     void Update()
     {
-        
+
         // Get positions
-        Vector3 startPos = positions[0];
-        Vector3 endPos = positions[1];
+        Vector3 camPos = Camera.main.transform.position;
+        Vector3 startPos = camPos - new Vector3(0, 0.5f, 0);
+        Vector3 endPos = positions[0];
 
         // Calculate direction and distance
         Vector3 direction = endPos - startPos;
@@ -157,13 +164,11 @@ public class parse : MonoBehaviour
         if (textMeshPro != null)
         {
             // Calculate midpoint and apply offset
-            Vector3 midPoint = startPos + direction * 0.5f;
-            textMeshPro.transform.position = midPoint + textOffset;
+            textMeshPro.transform.position = startPos + direction * 0.1f + textOffset;
 
             // Set text content
             string distanceText = $"Dist: {distance:F2}";
-            string directionText = $"Dir: {direction.ToString("F2")}";
-            textMeshPro.text = $"{distanceText}\n{directionText}";
+            textMeshPro.text = $"{distanceText}";
 
             // Update text properties
             textMeshPro.fontSize = textSize;
