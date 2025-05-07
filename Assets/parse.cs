@@ -131,7 +131,7 @@ public class parse : MonoBehaviour
         // Get positions
         Vector3 camPos = Camera.main.transform.position;
         Vector3 startPos = camPos - new Vector3(0, 0.5f, 0);
-        Vector3 endPos = positions[0];
+        Vector3 endPos = currentCheckpoint[0];
 
         // Calculate direction and distance
         Vector3 direction = endPos - startPos;
@@ -202,22 +202,8 @@ public class parse : MonoBehaviour
             Debug.Log("Trigger with " + other.name);
             Debug.Log(other.name);
 
-            //Vector3[] newList = new Vector3[positions.Length - 1];
-            //for (int i = 0; i < positions.Length - 1; i++)
-            //{
-            //    newList[i] = positions[i + 1];
-            //}
-            //lastCheckpoint[0] = positions[0];
-            //Debug.Log("Checkpoint reached: " + lastCheckpoint[0]);
-            //positions = newList;
             other.gameObject.GetComponent<Renderer>().material = reached;
 
-            // Draw a line from position 0 to position 1
-            LineRenderer lineRenderer = other.gameObject.AddComponent<LineRenderer>();
-            lineRenderer.startWidth = 0.3f;
-            lineRenderer.endWidth = 0.1f;
-            lineRenderer.positionCount = 2;
-            lineRenderer.SetPositions(positions); // Start point
 
             Debug.Log("Position count: " + positions.Length);
             lastCheckpoint[0] = positions[currentIndex];
