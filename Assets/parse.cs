@@ -35,6 +35,14 @@ public class parse : MonoBehaviour
     private Camera mainCamera;
 
     public GameObject XRrig;
+
+    public Collider machupicchu;
+
+    public Material reached;
+
+    public Vector3[] lastCheckpoint = new Vector3[1];
+    public Vector3[] currentCheckpoint = new Vector3[1];
+    public int currentIndex = 0;
     void ParseFile()
 	{
 		float ScaleFactor = 1.0f / 39.37f;
@@ -48,8 +56,9 @@ public class parse : MonoBehaviour
 			Vector3 pos = new Vector3(float.Parse(coords[0]), float.Parse(coords[1]), float.Parse(coords[2]));
 			positions[i] = pos * ScaleFactor;
 		}
-		//return positions;
-	}
+        currentCheckpoint[0] = positions[0];
+        //return positions;
+    }
 
 
     void Start()
@@ -187,21 +196,21 @@ public class parse : MonoBehaviour
     }
     void OnTriggerEnter(Collider other)
     {
-        if (other.transform.position == positions[0])
+
+        if (other.transform.position == currentCheckpoint[0] && other.gameObject.name == "WayPoint(Clone)")
         {
             Debug.Log("Trigger with " + other.name);
             Debug.Log(other.name);
 
-
-
-            Destroy(other.gameObject);
-            //positions.RemoveAt(0);
-            Vector3[] newList = new Vector3[positions.Length - 1];
-            for(int i = 0; i < positions.Length - 1; i++)
-            {
-                newList[i] = positions[i + 1];
-            }
-            positions = newList;
+            //Vector3[] newList = new Vector3[positions.Length - 1];
+            //for (int i = 0; i < positions.Length - 1; i++)
+            //{
+            //    newList[i] = positions[i + 1];
+            //}
+            //lastCheckpoint[0] = positions[0];
+            //Debug.Log("Checkpoint reached: " + lastCheckpoint[0]);
+            //positions = newList;
+            other.gameObject.GetComponent<Renderer>().material = reached;
 
             // Draw a line from position 0 to position 1
             LineRenderer lineRenderer = other.gameObject.AddComponent<LineRenderer>();
@@ -211,6 +220,17 @@ public class parse : MonoBehaviour
             lineRenderer.SetPositions(positions); // Start point
 
             Debug.Log("Position count: " + positions.Length);
+            lastCheckpoint[0] = positions[currentIndex];
+            currentCheckpoint[0] = positions[++currentIndex];
+
+            Debug.Log("Last Checkpoint: " + lastCheckpoint[0]);
+            Debug.Log("Current Checkpoint: " + currentCheckpoint[0]);
+        }
+        else if (other == machupicchu)
+        {
+            Debug.Log("Hit terrain with " + other.name);
+            XRrig.transform.position = lastCheckpoint[0];
+            XRrig.transform.rotation = Quaternion.LookRotation(positions[currentIndex] - lastCheckpoint[0]);
         }
     }
 
