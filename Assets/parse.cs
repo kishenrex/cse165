@@ -78,12 +78,7 @@ public class parse : MonoBehaviour
 			Instantiate(wayPoint, pos, Quaternion.identity);
             
         }
-        //Debug.DrawLine(wayPoint.transform.position, positions[0], Color.green, 5f);
-        //LineRenderer lineRenderer = gameObject.AddComponent<LineRenderer>();
-        //lineRenderer.startWidth = 0.1f;
-        //lineRenderer.endWidth = 0.1f;
-        //lineRenderer.SetPosition(0, positions[0]); // Start point
-        //lineRenderer.SetPosition(1, positions[1]); // End point
+
         // --- Setup Line Renderer ---
         lineRenderer = GetComponent<LineRenderer>();
 
@@ -113,12 +108,6 @@ public class parse : MonoBehaviour
         textMeshPro.alignment = TextAlignmentOptions.Center;
         textMeshPro.fontSize = textSize;
         textMeshPro.color = textColor;
-        // Optional: Disable Mesh Renderer casting shadows/receiving shadows if desired
-        // MeshRenderer tmProRenderer = textObject.GetComponent<MeshRenderer>();
-        // if (tmProRenderer != null) {
-        //     tmProRenderer.receiveShadows = false;
-        //     tmProRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        // }
 
         // Get main camera reference
         mainCamera = Camera.main;
@@ -129,7 +118,7 @@ public class parse : MonoBehaviour
 
         XRrig.transform.position = positions[0];
         Vector3 up = new Vector3(0, 1.0f, 0);
-        XRrig.transform.rotation = Quaternion.LookRotation(positions[1] - positions[0], up);
+        //XRrig.transform.rotation = Quaternion.LookRotation(positions[1] - positions[0], up);
         //timer.StartTimer();
         //Debug.Log("Timer starting");
     }
@@ -197,9 +186,6 @@ public class parse : MonoBehaviour
             {
                 // Rotate the text object to face the camera
                 textMeshPro.transform.rotation = Quaternion.LookRotation(textMeshPro.transform.position - mainCamera.transform.position);
-
-                // Alternative (Billboard effect - often looks better for text):
-                // textMeshPro.transform.rotation = mainCamera.transform.rotation;
             }
         }
     }
@@ -230,9 +216,10 @@ public class parse : MonoBehaviour
         }
         else if (other == machupicchu)
         {
+            timer.PenaltyTimer();
             Debug.Log("Hit terrain with " + other.name);
             XRrig.transform.position = lastCheckpoint[0];
-            XRrig.transform.rotation = Quaternion.LookRotation(positions[currentIndex] - lastCheckpoint[0]);
+            //XRrig.transform.rotation = Quaternion.LookRotation(positions[currentIndex] - lastCheckpoint[0]);
 
         }
     }

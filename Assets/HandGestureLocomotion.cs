@@ -16,8 +16,9 @@ public class HandGestureLocomotion : MonoBehaviour
     private bool isMoving = false;
 
     public XRHand leftHand;
-
-    public Vector3 direction = Camera.main.transform.forward;
+    public Timer timer;
+    public parse parse;
+    //public Vector3 direction = Camera.main.transform.forward;
     void Start()
     {
         handSubsystem = XRGeneralSettings.Instance.Manager.activeLoader.GetLoadedSubsystem<XRHandSubsystem>();
@@ -64,6 +65,7 @@ public class HandGestureLocomotion : MonoBehaviour
             Debug.Log("Moving in direction of camera");
         }
 
+        StartRaceWithFistGesture();
         // Optional: Camera switch based on left hand
     }
 
@@ -71,7 +73,10 @@ public class HandGestureLocomotion : MonoBehaviour
     {
         if (leftHand.GetJoint(XRHandJointID.IndexTip).TryGetPose(out Pose indexTipPose))
         {
-            direction = indexTipPose.forward; // You can also use another joint for more precise pointing
+            // Transform the local forward vector to world space
+            Vector3 direction = indexTipPose.rotation * Vector3.forward;
+
+            // Normalize the direction and apply movement
             Vector3 movement = direction.normalized * Time.deltaTime * 20f; // Movement speed
             transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
         }
@@ -79,9 +84,58 @@ public class HandGestureLocomotion : MonoBehaviour
 
     public void MoveInDirectionOfCam()
     {
-        direction = Camera.main.transform.forward; // You can also use another joint for more precise pointing
+        Vector3 direction = Camera.main.transform.forward; // You can also use another joint for more precise pointing
         Vector3 movement = direction.normalized * Time.deltaTime * 0f; // Movement speed
         transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
+    }
+    private IEnumerator StartRaceWithFistGesture()
+    {
+        float fistHoldTime = 5f; // Time required to hold the fist
+        float elapsedTime = 0f;
+        
+        while (elapsedTime < fistHoldTime)
+        {
+            if (handSubsystem == null || !handSubsystem.running)
+                yield break;
+
+            XRHand rightHand = handSubsystem.rightHand;
+
+            if (rightHand.isTracked)
+            {
+                // Fist detection: Check if all fingers are curled
+                bool isFist = true;
+                foreach (XRHandJointID jointID in new[] { XRHandJointID.IndexTip, XRHandJointID.MiddleTip, XRHandJointID.RingTip, XRHandJointID.LittleTip })
+                {
+                    Vector3 jointPosition = rightHand.GetJoint(jointID).TryGetPose(out var pose) ? pose.position : Vector3.zero;
+                    Vector3 palmPosition = rightHand.GetJoint(XRHandJointID.Palm).TryGetPose(out var palmPose) ? palmPose.position : Vector3.zero;
+
+                    if (Vector3.Distance(jointPosition, palmPosition) > pinchThreshold)
+                    {
+                        isFist = false;
+                        break;
+                    }
+                }
+
+                if (isFist)
+                {
+                    elapsedTime += Time.deltaTime;
+                    yield return null;
+                }
+                else
+                {
+                    elapsedTime = 0f; // Reset if fist is released
+                    yield return null;
+                }
+            }
+            else
+            {
+                elapsedTime = 0f; // Reset if hand is not tracked
+                yield return null;
+            }
+        }
+
+        Debug.Log("Race Started!");
+        timer.StartTimer(); // Start the race timer
     }
 
 }
