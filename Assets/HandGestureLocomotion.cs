@@ -15,6 +15,9 @@ public class HandGestureLocomotion : MonoBehaviour
 
     private bool isMoving = false;
 
+    public XRHand leftHand;
+
+    public Vector3 direction = Camera.main.transform.forward;
     void Start()
     {
         handSubsystem = XRGeneralSettings.Instance.Manager.activeLoader.GetLoadedSubsystem<XRHandSubsystem>();
@@ -26,7 +29,7 @@ public class HandGestureLocomotion : MonoBehaviour
             return;
 
         XRHand rightHand = handSubsystem.rightHand;
-        XRHand leftHand = handSubsystem.leftHand;
+        leftHand = handSubsystem.leftHand;
 
         if (rightHand.isTracked)
         {
@@ -52,21 +55,33 @@ public class HandGestureLocomotion : MonoBehaviour
         // Apply movement based on left hand
         if (isMoving && leftHand.isTracked)
         {
-            MoveInDirectionOfLeftHand(leftHand);
+            MoveInDirectionOfLeftHand();
+            Debug.Log("Moving in direction of left hand");
+        }
+        if (!isMoving)
+        {
+            MoveInDirectionOfCam();
+            Debug.Log("Moving in direction of camera");
         }
 
         // Optional: Camera switch based on left hand
     }
 
-    void MoveInDirectionOfLeftHand(XRHand leftHand)
+    public void MoveInDirectionOfLeftHand()
     {
-        if (leftHand.GetJoint(XRHandJointID.Palm).TryGetPose(out Pose leftPalmPose))
+        if (leftHand.GetJoint(XRHandJointID.IndexTip).TryGetPose(out Pose indexTipPose))
         {
-            Vector3 direction = leftPalmPose.forward; // You can also use another joint for more precise pointing
+            direction = indexTipPose.forward; // You can also use another joint for more precise pointing
             Vector3 movement = direction.normalized * Time.deltaTime * 20f; // Movement speed
-            transform.position += new Vector3(-movement.x, movement.y, -movement.z); // Move horizontally only
+            transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
         }
     }
 
+    public void MoveInDirectionOfCam()
+    {
+        direction = Camera.main.transform.forward; // You can also use another joint for more precise pointing
+        Vector3 movement = direction.normalized * Time.deltaTime * 1f; // Movement speed
+        transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
+    }
 
 }

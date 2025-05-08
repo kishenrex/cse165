@@ -43,6 +43,8 @@ public class parse : MonoBehaviour
     public Vector3[] lastCheckpoint = new Vector3[1];
     public Vector3[] currentCheckpoint = new Vector3[1];
     public int currentIndex = 0;
+
+    public HandGestureLocomotion handGestureLocomotion;
     void ParseFile()
 	{
 		float ScaleFactor = 1.0f / 39.37f;
@@ -217,6 +219,7 @@ public class parse : MonoBehaviour
             Debug.Log("Hit terrain with " + other.name);
             XRrig.transform.position = lastCheckpoint[0];
             XRrig.transform.rotation = Quaternion.LookRotation(positions[currentIndex] - lastCheckpoint[0]);
+
         }
     }
 
