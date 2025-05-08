@@ -80,7 +80,7 @@ public class HandGestureLocomotion : MonoBehaviour
     public void MoveInDirectionOfCam()
     {
         direction = Camera.main.transform.forward; // You can also use another joint for more precise pointing
-        Vector3 movement = direction.normalized * Time.deltaTime * 1f; // Movement speed
+        Vector3 movement = direction.normalized * Time.deltaTime * 0f; // Movement speed
         transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
     }
 

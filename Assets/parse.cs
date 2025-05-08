@@ -45,6 +45,9 @@ public class parse : MonoBehaviour
     public int currentIndex = 0;
 
     public HandGestureLocomotion handGestureLocomotion;
+    public Timer timer;
+    public Vector3 startPoint;
+    public Vector3 endPoint;
     void ParseFile()
 	{
 		float ScaleFactor = 1.0f / 39.37f;
@@ -59,13 +62,15 @@ public class parse : MonoBehaviour
 			positions[i] = pos * ScaleFactor;
 		}
         currentCheckpoint[0] = positions[0];
+        startPoint = positions[0];
+        endPoint = positions[positions.Length-1];
         //return positions;
     }
 
 
     void Start()
 	{	
-		ParseFile();
+        ParseFile();
 		foreach (Vector3 pos in positions)
 		{
 
@@ -125,6 +130,8 @@ public class parse : MonoBehaviour
         XRrig.transform.position = positions[0];
         Vector3 up = new Vector3(0, 1.0f, 0);
         XRrig.transform.rotation = Quaternion.LookRotation(positions[1] - positions[0], up);
+        //timer.StartTimer();
+        //Debug.Log("Timer starting");
     }
 
     void Update()
@@ -198,7 +205,14 @@ public class parse : MonoBehaviour
     }
     void OnTriggerEnter(Collider other)
     {
-
+        if(other.transform.position == startPoint && other.transform.position == currentCheckpoint[0])
+        {
+            timer.StartTimer();
+        }
+        if (other.transform.position == endPoint && other.transform.position == currentCheckpoint[0])
+        {
+            timer.StopTimer();
+        }
         if (other.transform.position == currentCheckpoint[0] && other.gameObject.name == "WayPoint(Clone)")
         {
             Debug.Log("Trigger with " + other.name);
