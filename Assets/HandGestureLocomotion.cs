@@ -13,11 +13,14 @@ public class HandGestureLocomotion : MonoBehaviour
     public XRNode leftHandNode = XRNode.LeftHand;
     public float pinchThreshold = 0.02f; // ~2cm
 
-    private bool isMoving = false;
+    public bool isMoving = false;
 
     public XRHand leftHand;
     public Timer timer;
     public parse parse;
+
+    public AudioManager audioManager;
+    public GameObject drone;
     //public Vector3 direction = Camera.main.transform.forward;
     void Start()
     {
@@ -56,12 +59,20 @@ public class HandGestureLocomotion : MonoBehaviour
         // Apply movement based on left hand
         if (isMoving && leftHand.isTracked)
         {
-            MoveInDirectionOfLeftHand();
+            MoveInDirectionOfLeftHand(20f);
+            drone.GetComponent<AudioSource>().Play();
             Debug.Log("Moving in direction of left hand");
         }
         if (!isMoving)
         {
-            MoveInDirectionOfCam();
+            MoveInDirectionOfLeftHand(5f);
+            drone.GetComponent<AudioSource>().pitch = 0.5f; // Slow down the drone sound
+            Debug.Log("Moving with base speed");
+        }
+        if(!leftHand.isTracked)
+        {
+            MoveInDirectionOfLeftHand(0f);
+            drone.GetComponent<AudioSource>().Stop();
             Debug.Log("Moving in direction of camera");
         }
 
@@ -69,7 +80,7 @@ public class HandGestureLocomotion : MonoBehaviour
         // Optional: Camera switch based on left hand
     }
 
-    public void MoveInDirectionOfLeftHand()
+    public void MoveInDirectionOfLeftHand(float speed)
     {
         if (leftHand.GetJoint(XRHandJointID.IndexTip).TryGetPose(out Pose indexTipPose))
         {
@@ -77,7 +88,7 @@ public class HandGestureLocomotion : MonoBehaviour
             Vector3 direction = indexTipPose.rotation * Vector3.forward;
 
             // Normalize the direction and apply movement
-            Vector3 movement = direction.normalized * Time.deltaTime * 20f; // Movement speed
+            Vector3 movement = direction.normalized * Time.deltaTime * speed; // Movement speed
             transform.position += new Vector3(movement.x, movement.y, movement.z); // Move horizontally only
         }
     }

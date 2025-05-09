@@ -48,6 +48,9 @@ public class parse : MonoBehaviour
     public Timer timer;
     public Vector3 startPoint;
     public Vector3 endPoint;
+
+    public AudioManager audioManager;
+
     void ParseFile()
 	{
 		float ScaleFactor = 1.0f / 39.37f;
@@ -205,6 +208,7 @@ public class parse : MonoBehaviour
             Debug.Log(other.name);
 
             other.gameObject.GetComponent<Renderer>().material = reached;
+            //audioManager.PlayCheckPointReached();
 
 
             Debug.Log("Position count: " + positions.Length);
@@ -218,7 +222,9 @@ public class parse : MonoBehaviour
         {
             timer.PenaltyTimer();
             Debug.Log("Hit terrain with " + other.name);
+            //audioManager.PlayCrashSound();
             XRrig.transform.position = lastCheckpoint[0];
+
             //XRrig.transform.rotation = Quaternion.LookRotation(positions[currentIndex] - lastCheckpoint[0]);
 
         }
