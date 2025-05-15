@@ -21,6 +21,7 @@ public class HandGestureLocomotion : MonoBehaviour
 
     public AudioManager audioManager;
     public GameObject drone;
+
     //public Vector3 direction = Camera.main.transform.forward;
     void Start()
     {

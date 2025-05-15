@@ -5,6 +5,8 @@ using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using TMPro;
+using System.Threading;
+using System.Runtime.CompilerServices;
 
 
 [RequireComponent(typeof(LineRenderer))] // Ensure LineRenderer is present
@@ -50,6 +52,10 @@ public class parse : MonoBehaviour
     public Vector3 endPoint;
 
     public AudioManager audioManager;
+    public AudioClip spatialCheckpoint;
+
+    public GameObject[] wayPoints;
+    public GameObject cockpit;
 
     void ParseFile()
 	{
@@ -78,9 +84,17 @@ public class parse : MonoBehaviour
 		{
 
             Debug.Log(pos);
-			Instantiate(wayPoint, pos, Quaternion.identity);
-            
+			GameObject instantiated = Instantiate(wayPoint, pos, Quaternion.identity);
+            instantiated.AddComponent<AudioManager>();
+            Debug.Log("Length of wayPoints GameObject: " + wayPoints.Length);
+
         }
+
+        //foreach(GameObject game in wayPoints)
+        //{
+        //    Debug.Log("Current state of waypoints: " + game);
+            
+        //}
 
         // --- Setup Line Renderer ---
         lineRenderer = GetComponent<LineRenderer>();
@@ -124,6 +138,8 @@ public class parse : MonoBehaviour
         //XRrig.transform.rotation = Quaternion.LookRotation(positions[1] - positions[0], up);
         //timer.StartTimer();
         //Debug.Log("Timer starting");
+        StartCoroutine(startCountdown());
+        cockpit.GetComponent<AudioSource>().Play();
     }
 
     void Update()
@@ -191,10 +207,11 @@ public class parse : MonoBehaviour
                 textMeshPro.transform.rotation = Quaternion.LookRotation(textMeshPro.transform.position - mainCamera.transform.position);
             }
         }
+
     }
     void OnTriggerEnter(Collider other)
     {
-        if(other.transform.position == startPoint && other.transform.position == currentCheckpoint[0])
+        if(other.transform.position == startPoint && other.transform.position == currentCheckpoint[0] && timer.penaltyTimeRemaining == 0f)
         {
             timer.StartTimer();
         }
@@ -209,7 +226,8 @@ public class parse : MonoBehaviour
 
             other.gameObject.GetComponent<Renderer>().material = reached;
             //audioManager.PlayCheckPointReached();
-
+            other.gameObject.AddComponent<AudioSource>().playOnAwake = true;
+            other.gameObject.GetComponent<AudioSource>().spatialBlend = 1f;
 
             Debug.Log("Position count: " + positions.Length);
             lastCheckpoint[0] = positions[currentIndex];
@@ -229,5 +247,13 @@ public class parse : MonoBehaviour
 
         }
     }
-
+    private IEnumerator startCountdown()
+    {
+        timer.penaltyTimeRemaining = 10f;
+        timer.StartCoroutine(timer.DisablePlayerMovementAndGrayScreen(timer.penaltyPanel, timer.penaltyTimeRemaining));
+        timer.isPenaltyActive = true;
+        yield return new WaitForSeconds(10f);
+        timer.isTimerRunning = true;
+    }
 }
+

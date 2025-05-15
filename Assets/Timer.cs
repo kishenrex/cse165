@@ -2,16 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Unity.VisualScripting;
+using System.Threading;
 
 public class Timer : MonoBehaviour
 {
     public TextMeshProUGUI timerText; // Reference to the main timer TextMeshProUGUI component
     public TextMeshProUGUI penaltyTimerText; // Reference to the penalty countdown TextMeshProUGUI component
     private float elapsedTime = 0f; // Time elapsed since the start of the game
-    private bool isTimerRunning = false; // Flag to control the main timer
-    private bool isPenaltyActive = false; // Flag to control the penalty countdown
-    private float penaltyTimeRemaining = 0f; // Time remaining for the penalty countdown
+    public bool isTimerRunning = false; // Flag to control the main timer
+    public bool isPenaltyActive = false; // Flag to control the penalty countdown
+    public float penaltyTimeRemaining = 0f; // Time remaining for the penalty countdown
     public GameObject penaltyPanel; // Reference to the penalty panel GameObject
+    public AudioManager audioManager; // Reference to the AudioManager for playing sounds
 
     // Update is called once per frame
     void Update()
@@ -36,14 +39,7 @@ public class Timer : MonoBehaviour
 
     public void StartTimer()
     {
-        if (!isTimerRunning && !isPenaltyActive)
-        {
-            isPenaltyActive = true; // Activate penalty
-            penaltyTimeRemaining = 10f;
-            StartCoroutine(DisablePlayerMovementAndGrayScreen(penaltyPanel, penaltyTimeRemaining)); // Disable player movement and gray out screen
-        }
-
-        if (!isTimerRunning && isPenaltyActive)
+        if (!isTimerRunning)
         {
             elapsedTime = 0f; // Reset elapsed time
             isTimerRunning = true; // Start the timer
@@ -84,13 +80,14 @@ public class Timer : MonoBehaviour
     {
         if (isTimerRunning && !isPenaltyActive)
         {
+            audioManager.PlayCrashSound(); // Play crash sound
             isPenaltyActive = true; // Activate penalty
             penaltyTimeRemaining = 3f; // Set penalty duration to 3 seconds
             StartCoroutine(DisablePlayerMovementAndGrayScreen(penaltyPanel, penaltyTimeRemaining)); // Disable player movement and gray out screen
         }
     }
 
-    private IEnumerator DisablePlayerMovementAndGrayScreen(GameObject penaltyPanel, float penaltyTimeRemaining)
+    public IEnumerator DisablePlayerMovementAndGrayScreen(GameObject penaltyPanel, float penaltyTimeRemaining)
     {
         // Disable player movement
         HandGestureLocomotion handGestureLocomotion = FindObjectOfType<HandGestureLocomotion>();
