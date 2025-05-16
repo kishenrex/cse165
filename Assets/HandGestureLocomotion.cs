@@ -63,7 +63,7 @@ public class HandGestureLocomotion : MonoBehaviour
         // Apply movement based on left hand
         if (isMoving && leftHand.isTracked)
         {
-            MoveInDirectionOfLeftHand(20f);
+            MoveInDirectionOfLeftHand(50f);
             Debug.Log("Moving in direction of left hand");
         }
         if (!isMoving)
