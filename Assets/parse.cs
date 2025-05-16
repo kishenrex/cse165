@@ -51,11 +51,15 @@ public class parse : MonoBehaviour
     public Vector3 startPoint;
     public Vector3 endPoint;
 
-    public AudioManager audioManager;
-    public AudioClip spatialCheckpoint;
+    public GameObject audioManager;
+    public AudioClip checkpointAudio;
 
-    public GameObject[] wayPoints;
+    public List<GameObject> wayPoints = new List<GameObject>();
     public GameObject cockpit;
+    public GameObject FinishSound;
+    public GameObject CountDownSound;
+
+    public GameObject CheckpointReachedSound;
 
     void ParseFile()
 	{
@@ -86,7 +90,8 @@ public class parse : MonoBehaviour
             Debug.Log(pos);
 			GameObject instantiated = Instantiate(wayPoint, pos, Quaternion.identity);
             instantiated.AddComponent<AudioManager>();
-            Debug.Log("Length of wayPoints GameObject: " + wayPoints.Length);
+            wayPoints.Add(instantiated);
+            Debug.Log("Length of wayPoints GameObject: " + wayPoints.Count);
 
         }
 
@@ -217,6 +222,7 @@ public class parse : MonoBehaviour
         }
         if (other.transform.position == endPoint && other.transform.position == currentCheckpoint[0])
         {
+            FinishSound.GetComponent<AudioSource>().Play();
             timer.StopTimer();
         }
         if (other.transform.position == currentCheckpoint[0] && other.gameObject.name == "WayPoint(Clone)")
@@ -226,8 +232,13 @@ public class parse : MonoBehaviour
 
             other.gameObject.GetComponent<Renderer>().material = reached;
             //audioManager.PlayCheckPointReached();
-            other.gameObject.AddComponent<AudioSource>().playOnAwake = true;
-            other.gameObject.GetComponent<AudioSource>().spatialBlend = 1f;
+            if(other.transform.position == currentCheckpoint[0])
+            {
+                Debug.Log("CheckPointBeep already at current checkpoint!");
+                other.GetComponent<AudioSource>().loop = false;
+                other.GetComponent<AudioSource>().Stop();
+                Debug.Log("Checkpoint Beep Sound Stopped!");
+            }
 
             Debug.Log("Position count: " + positions.Length);
             lastCheckpoint[0] = positions[currentIndex];
@@ -235,11 +246,29 @@ public class parse : MonoBehaviour
 
             Debug.Log("Last Checkpoint: " + lastCheckpoint[0]);
             Debug.Log("Current Checkpoint: " + currentCheckpoint[0]);
+            CheckpointReachedSound.GetComponent<AudioSource>().Play();
+            Debug.Log("Checkpoint Audio Played!");
+            foreach (GameObject wayPointClone in wayPoints)
+            {
+                if(wayPointClone.transform.position == currentCheckpoint[0])
+                {
+                    wayPointClone.GetComponent<AudioSource>().loop = true;
+                    wayPointClone.GetComponent<AudioSource>().Play();
+                    Debug.Log("Checkpoint Beep Sound Looping!");
+                }
+            }
+            //AudioSource checkpointSounds = CheckPointBeepInstantiate.GetComponent<AudioSource>();
+            //checkpointSounds.clip = CheckPointBeepSound;
+            //checkpointSounds.Play();
+            Debug.Log("Checkpoint Beep Sound Played!");
+
         }
-        else if (other == machupicchu)
+        if (other == machupicchu)
         {
             timer.PenaltyTimer();
             Debug.Log("Hit terrain with " + other.name);
+            audioManager.GetComponent<AudioSource>().Play();
+            Debug.Log("Crash Audio Played!");
             //audioManager.PlayCrashSound();
             XRrig.transform.position = lastCheckpoint[0];
 
@@ -252,8 +281,10 @@ public class parse : MonoBehaviour
         timer.penaltyTimeRemaining = 10f;
         timer.StartCoroutine(timer.DisablePlayerMovementAndGrayScreen(timer.penaltyPanel, timer.penaltyTimeRemaining));
         timer.isPenaltyActive = true;
+        CountDownSound.GetComponent<AudioSource>().Play();
         yield return new WaitForSeconds(10f);
         timer.isTimerRunning = true;
+        CountDownSound.GetComponent<AudioSource>().Stop();
     }
 }
 

@@ -47,11 +47,14 @@ public class HandGestureLocomotion : MonoBehaviour
             if (pinchDistance < pinchThreshold)
             {
                 Debug.Log("Pinch Detected");
+                drone.GetComponent<AudioSource>().Play();
+                drone.GetComponent<AudioSource>().loop = true;
                 isMoving = true;
             }
             else
             {
                 Debug.Log("Pinch Released");
+                drone.GetComponent<AudioSource>().pitch = 0.5f;
                 isMoving = false;
             }
                 
@@ -61,19 +64,16 @@ public class HandGestureLocomotion : MonoBehaviour
         if (isMoving && leftHand.isTracked)
         {
             MoveInDirectionOfLeftHand(20f);
-            drone.GetComponent<AudioSource>().Play();
             Debug.Log("Moving in direction of left hand");
         }
         if (!isMoving)
         {
             MoveInDirectionOfLeftHand(5f);
-            drone.GetComponent<AudioSource>().pitch = 0.5f; // Slow down the drone sound
             Debug.Log("Moving with base speed");
         }
         if(!leftHand.isTracked)
         {
             MoveInDirectionOfLeftHand(0f);
-            drone.GetComponent<AudioSource>().Stop();
             Debug.Log("Moving in direction of camera");
         }
 

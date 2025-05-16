@@ -80,7 +80,7 @@ public class Timer : MonoBehaviour
     {
         if (isTimerRunning && !isPenaltyActive)
         {
-            audioManager.PlayCrashSound(); // Play crash sound
+            //audioManager.PlayCrashSound(); // Play crash sound
             isPenaltyActive = true; // Activate penalty
             penaltyTimeRemaining = 3f; // Set penalty duration to 3 seconds
             StartCoroutine(DisablePlayerMovementAndGrayScreen(penaltyPanel, penaltyTimeRemaining)); // Disable player movement and gray out screen
