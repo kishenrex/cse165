@@ -20,7 +20,9 @@ public class HandTrackingScript : MonoBehaviour
     private Transform p2;
 
     private Transform handIndexTipTransform;
-
+    // Add these fields at the top of the class
+    public GameObject bigVegas; // Assign in Inspector
+    private Animator bigVegasAnimator;
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +32,11 @@ public class HandTrackingScript : MonoBehaviour
 
         // Assign the LineRenderer component of the cube GameObject to line
         line = GetComponent<LineRenderer>();
+
+        if (bigVegas != null)
+        {
+            bigVegasAnimator = bigVegas.GetComponent<Animator>();
+        }
     }
 
     // Update is called once per frame
@@ -85,8 +92,62 @@ public class HandTrackingScript : MonoBehaviour
                 line.enabled = false;
             }
         }
-
+        // Add this after the rightHand.IsTracked check in Update()
+        if (rightHand.IsTracked && leftHand.IsTracked)
+        {
+            {
+                Transform rightPoint = rightHand.GetPointerRayTransform();
+                if (rightPoint != null && bigVegas != null)
+                {
+                    // Use the forward direction of the pointer as the walking direction
+                    MoveBigVegasTowards(rightPoint.forward);
+                }
+                else if (bigVegasAnimator != null && leftHand.GetFingerIsPinching(OVRHand.HandFinger.Index))
+                {
+                    bigVegasAnimator.SetBool("IsWalking", false);
+                }
+            }
+        }
+        else if (bigVegasAnimator != null)
+        {
+            bigVegasAnimator.SetBool("IsWalking", false);
+        }
     }
+
+
+
+    // Add this helper method at the end of the class
+    private void MoveBigVegasTowards(Vector3 targetDirection)
+    {
+        if (bigVegas == null || bigVegasAnimator == null)
+            return;
+
+        // Calculate target position a few meters in the pointing direction, but ignore Y (vertical) movement
+        Vector3 start = bigVegas.transform.position;
+        Vector3 direction = targetDirection.normalized;
+        direction.y = 0f; // Prevent vertical movement
+        direction = direction.normalized;
+
+        Vector3 targetPos = start + direction * 2.0f; // Move 2 meters in pointing direction
+
+        // Move BigVegas towards the target position, only on the XZ plane
+        float moveSpeed = 1.5f; // meters per second
+        Vector3 nextPos = Vector3.MoveTowards(start, targetPos, moveSpeed * Time.deltaTime);
+        nextPos.y = start.y; // Keep original Y position
+        bigVegas.transform.position = nextPos;
+
+        // Rotate BigVegas to face the movement direction, only on the XZ plane
+        if (direction.sqrMagnitude > 0.01f)
+        {
+            Quaternion lookRot = Quaternion.LookRotation(direction, Vector3.up);
+            bigVegas.transform.rotation = Quaternion.Slerp(bigVegas.transform.rotation, lookRot, 0.2f);
+        }
+
+        // Set walking animation
+        bigVegasAnimator.SetBool("IsWalking", true);
+    }
+
+
 
     void DrawCurve(Vector3 point_0, Vector3 point_1, Vector3 point_2)
     /***********************************************************************************
