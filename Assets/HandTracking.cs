@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,6 +24,15 @@ public class HandTrackingScript : MonoBehaviour
     // Add these fields at the top of the class
     public GameObject bigVegas; // Assign in Inspector
     private Animator bigVegasAnimator;
+
+    private CharacterController _characterController;
+
+    private Vector3 _playerVelocity;
+    private float _gravityValue = -9.81f;
+
+    private bool isMoving = false;
+
+    private bool isInZone = false; // Track if BigVegas is in the zone
     // Start is called before the first frame update
     void Start()
     {
@@ -37,6 +47,11 @@ public class HandTrackingScript : MonoBehaviour
         {
             bigVegasAnimator = bigVegas.GetComponent<Animator>();
         }
+
+        if(bigVegasAnimator != null)
+        {
+            _characterController = bigVegas.GetComponent<CharacterController>();
+        }
     }
 
     // Update is called once per frame
@@ -45,6 +60,10 @@ public class HandTrackingScript : MonoBehaviour
         // Define step value for animation
         step = 5.0f * Time.deltaTime;
 
+        if (_characterController != null && _characterController.isGrounded && _playerVelocity.y < 0)
+        {
+            _playerVelocity.y = 0f;
+        }
         // If left hand is tracked
         if (leftHand.IsTracked)
         {
@@ -97,7 +116,7 @@ public class HandTrackingScript : MonoBehaviour
         {
             {
                 Transform rightPoint = rightHand.GetPointerRayTransform();
-                if (rightPoint != null && bigVegas != null)
+                if (rightPoint != null && bigVegas != null && !isInZone && rightHand.IsPointerPoseValid)
                 {
                     // Use the forward direction of the pointer as the walking direction
                     MoveBigVegasTowards(rightPoint.forward);
@@ -105,6 +124,7 @@ public class HandTrackingScript : MonoBehaviour
                 else if (bigVegasAnimator != null && leftHand.GetFingerIsPinching(OVRHand.HandFinger.Index))
                 {
                     bigVegasAnimator.SetBool("IsWalking", false);
+                        
                 }
             }
         }
@@ -119,22 +139,18 @@ public class HandTrackingScript : MonoBehaviour
     // Add this helper method at the end of the class
     private void MoveBigVegasTowards(Vector3 targetDirection)
     {
-        if (bigVegas == null || bigVegasAnimator == null)
+        if (bigVegas == null || bigVegasAnimator == null || _characterController == null)
             return;
 
-        // Calculate target position a few meters in the pointing direction, but ignore Y (vertical) movement
-        Vector3 start = bigVegas.transform.position;
+        // Calculate movement direction, ignore Y (vertical) movement
         Vector3 direction = targetDirection.normalized;
         direction.y = 0f; // Prevent vertical movement
         direction = direction.normalized;
 
-        Vector3 targetPos = start + direction * 2.0f; // Move 2 meters in pointing direction
-
-        // Move BigVegas towards the target position, only on the XZ plane
+        // Move BigVegas using CharacterController, only on the XZ plane
         float moveSpeed = 1.5f; // meters per second
-        Vector3 nextPos = Vector3.MoveTowards(start, targetPos, moveSpeed * Time.deltaTime);
-        nextPos.y = start.y; // Keep original Y position
-        bigVegas.transform.position = nextPos;
+        Vector3 move = direction * moveSpeed * Time.deltaTime;
+        _characterController.Move(move);
 
         // Rotate BigVegas to face the movement direction, only on the XZ plane
         if (direction.sqrMagnitude > 0.01f)
@@ -187,5 +203,10 @@ public class HandTrackingScript : MonoBehaviour
 
         transform.position = Vector3.Lerp(transform.position, targetPosition, step);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, step);
+    }
+
+    void OnTriggerEnter(Collider other) { 
+        bigVegasAnimator.SetBool("IsWalking", false);
+        isInZone = true; // Set the flag when entering the zone
     }
 }
